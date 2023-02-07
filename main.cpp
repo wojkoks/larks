@@ -29,6 +29,11 @@ class menu_button {
         this->b_clicked_color = clicked_color;
         this->rect = r;
         this->ID = ID;
+        std::cout << "Stworzono Przycisk ID: " << this->ID << std::endl;
+    }
+
+    ~menu_button(void) {
+        std::cout << "Dealokacja przycisku o ID: " << this->ID << std::endl;
     }
 
     bool isMouseOverThatButton(Vector2 mouse_position) { 
@@ -51,8 +56,6 @@ class menu_button {
         }
 
         else this->b_current_color = this->b_base_color;
-        
-        //std::cout << "B_ID=" << this->ID << " clr = " << (int)this->b_current_color.r << std::endl;
 
         return;
     }
@@ -64,7 +67,7 @@ void v_draw_buttons(std::vector<menu_button> vector_of_buttons) {
         
         try {
             DrawRectangleRec(vector_of_buttons[i].rect, vector_of_buttons[i].b_current_color);
-            std::cout << "Drew B:" << vector_of_buttons[i].ID << " with clr.r =" << (int)vector_of_buttons[i].b_current_color.r << std::endl;
+            //std::cout << "Drew B:" << vector_of_buttons[i].ID << " with clr.r =" << (int)vector_of_buttons[i].b_current_color.r << std::endl;
         }
         catch (std::exception& e) {
             std::cout << e.what() << std::endl;
@@ -115,11 +118,20 @@ void main_menu(display_content &enum_display_value) {
         menu_button b(r, BUTTON_COLOR, BUTTON_HOVER_COLOR, BUTTON_CLICKED_COLOR, (display_content)i);
         vector_of_buttons.push_back(b);
     }
+    
+    while(!WindowShouldClose() && enum_display_value == MENU) {
 
-    handle_button_clicks(enum_display_value, vector_of_buttons);
+        handle_button_clicks(enum_display_value, vector_of_buttons);
 
-    v_draw_buttons(vector_of_buttons);
-    //moze zamiast tego lambde walne xd
+        BeginDrawing();
+
+        ClearBackground(BLACK);
+        v_draw_buttons(vector_of_buttons);
+
+        // if (IsKeyDown(KEY_ESCAPE)) break;
+
+        EndDrawing();
+    }
 
     return;
 }
@@ -135,7 +147,7 @@ void draw(display_content &enum_display_value){
             break;
         
         case ALGORYTM_1:
-            //TODO
+                while(true) {std::cout << "chuj ci w dupe ";}
             break;
         
         case ALGORYTM_2:
@@ -167,12 +179,13 @@ int main(void) {
 
     while(!WindowShouldClose()) {
 
-        BeginDrawing();
+        // BeginDrawing();
 
-            draw(Content);
-            ClearBackground(BLACK);
+        //     draw(Content);
+        //     ClearBackground(BLACK);
 
-        EndDrawing();
+        // EndDrawing();
+        draw(Content);
     }
 
     return 0;
