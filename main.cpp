@@ -1,141 +1,177 @@
-// #include "raylib.h"
-// #include "objects.h"
-// int main(void)
-// {
-//     static int Width = 1920/2;
-//     static int Height = 1080/2;
-//     InitWindow(Width, Height, "advanced");
-
-//     bool drawing = false;
-//     bool Vdrawing = false;
-
-//     Vector2 mousePos[2];
-
-//     //spawn a circle which we will control!
-//     circle C1({(float)Width/2, (float)Height/2,}, {0,0}, WHITE, 20);
-
-//     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
-//     //---------------------------------------------------------------------------------------
-
-//     // Main game loop
-//     while (!WindowShouldClose())    // Detect window close button or ESC key
-//     {
-//         // Detect if we are clicking currently
-//         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-//             drawing = true;
-//             mousePos[0] = GetMousePosition();
-            
-//             // Let's see if we are clicking on our ball, if yes - Vdrawing = true
-//             if (C1.isClicked(GetMousePosition(), drawing, 10.0f)) Vdrawing = true;
-//         }
-
-//         if (drawing) mousePos[1] = GetMousePosition();
-
-//                 // If we release LMB
-//         if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
-//             drawing = false;
-//                 // If we were holding the ball - calculate it's  velocity!
-//             if (Vdrawing) {
-//                 C1.velocity.x = 0;
-//                 C1.velocity.y = 0;
-//                 C1.velocityUpdate(mousePos[0], math::getLineMax(mousePos[0], mousePos[1]));
-//                 Vdrawing = false;
-//             }
-//         }
-
-//         if (!Vdrawing) {
-//             //C1.velocityUpdateOnGravityPull(C1.position, {(float)Width/2, (float)Height/2}, 32, 32);
-//             C1.velocityUpdate(GetFrameTime());
-//             C1.positionUpdate();
-//         }
-        
-//         preventClipping(&C1, checkWindowBorderCollision(&C1, Width, Height), Width, Height);
-
-//         BeginDrawing();
-
-//         ClearBackground(DARKBLUE);
-//         if (drawing) DrawLineV(mousePos[0], math::getLineMax(mousePos[0], mousePos[1]), WHITE);
-//         if (drawing) {
-//             //std::cout << "M0x: " << mousePos[0].x << " M0y: " << mousePos[0].y << " M1x: " << mousePos[1].x << " M1y: " << mousePos[1].y << std::endl;
-//         }
-//         DrawCircleV(C1.position, C1.radius, C1.color);
-//         EndDrawing();
-//         //----------------------------------------------------------------------------------
-//     }
-//     // De-Initialization
-//     //--------------------------------------------------------------------------------------
-//     CloseWindow();        // Close window and OpenGL context
-//     //--------------------------------------------------------------------------------------
-//     char c;
-//     std::cin >> c;
-//     return 0;
-// }
-
 #include "raylib.h"
 #include "objects.h"
 #include <iostream>
+#include <exception>
+#include <vector>
 
-Vector2 rotateA_aroundR_byB(Vector2 A, Vector2 R, float B) {
-    float sinB = std::sin(B);
-    float cosB = std::cos(B);
-    Vector2 aux = {A.x-R.x, A.y-R.y};
-    A.x = (aux.x*cosB - aux.y*sinB)+R.x;
-    A.y = (aux.y*cosB + aux.x*sinB)+R.y;
-    return A;
+//MENU, ALGORYTM_1, ALGORYTM_2, TODO
+enum display_content {MENU, ALGORYTM_1, ALGORYTM_2, TODO};
+
+class menu_button {
+    
+    public:
+
+    Color b_base_color;
+    Color b_hover_color;
+    Color b_clicked_color;
+
+    Color b_current_color;
+
+    display_content ID;
+    Rectangle rect;
+    bool mouseOverIt;
+    bool isClicked;
+    
+    menu_button(Rectangle r, Color color, Color hover_color, Color clicked_color, display_content ID) {
+        this->b_base_color = color;
+        this->b_current_color = color;
+        this->b_hover_color = hover_color;
+        this->b_clicked_color = clicked_color;
+        this->rect = r;
+        this->ID = ID;
+    }
+
+    bool isMouseOverThatButton(Vector2 mouse_position) { 
+        return CheckCollisionPointRec(mouse_position, this->rect);
+    }
+
+    //czy klikamy na przycisk
+    bool isButtonClicked() {
+        return IsMouseButtonDown(MOUSE_BUTTON_LEFT);
+    }
+
+    void setButtonState(display_content &enum_display_value, Vector2 mouse_position) {
+
+        if (isMouseOverThatButton(mouse_position)) {     
+            if (isButtonClicked()) {
+                this->b_current_color = this->b_clicked_color;
+                enum_display_value = this->ID;
+            }
+            else this->b_current_color = this->b_hover_color;
+        }
+
+        else this->b_current_color = this->b_base_color;
+        
+        //std::cout << "B_ID=" << this->ID << " clr = " << (int)this->b_current_color.r << std::endl;
+
+        return;
+    }
+};
+
+void v_draw_buttons(std::vector<menu_button> vector_of_buttons) {
+
+    for (int i = 0; i < vector_of_buttons.size(); i++) {
+        
+        try {
+            DrawRectangleRec(vector_of_buttons[i].rect, vector_of_buttons[i].b_current_color);
+            std::cout << "Drew B:" << vector_of_buttons[i].ID << " with clr.r =" << (int)vector_of_buttons[i].b_current_color.r << std::endl;
+        }
+        catch (std::exception& e) {
+            std::cout << e.what() << std::endl;
+            std::exit(1);
+        }
+    }
+    return;
 }
+
+void handle_button_clicks(display_content &enum_display_value, std::vector<menu_button>& vector_of_buttons) {
+    
+    Vector2 mouse_position = GetMousePosition();
+
+    // Czemu to nie działa??????????????????????????????????????????????
+    // for (auto x: vector_of_buttons) {
+    //     x.setButtonState(enum_display_value, mouse_position);
+    // }
+
+    // A to już tak ????????????????????????????????????????????????????
+    for (int i = 0 ; i < vector_of_buttons.size(); i++) {
+        vector_of_buttons[i].setButtonState(enum_display_value, mouse_position);
+    }
+
+    return;
+}
+
+void main_menu(display_content &enum_display_value) {
+
+    //=======
+    Color BUTTON_COLOR = RED;
+    Color BUTTON_HOVER_COLOR = LIGHTGRAY;
+    Color BUTTON_CLICKED_COLOR = WHITE;
+
+    static int MENU_BUTTON_HEIGHT = GetScreenHeight()/16;
+    static int MENU_BUTTON_WIDTH = GetScreenWidth()/4;
+    static int PADDING_BETWEEN_BUTTONS = MENU_BUTTON_HEIGHT/8;
+    static int AMT_OF_BUTTONS = 4;
+    static int TOTAL_HEIGHT_OF_BUTTONS_WITH_PADDING = AMT_OF_BUTTONS*MENU_BUTTON_HEIGHT + (AMT_OF_BUTTONS - 1)*PADDING_BETWEEN_BUTTONS; //rozmiar w px bloku przyciskow
+
+    int BUTTON_X = (GetScreenWidth()-MENU_BUTTON_WIDTH)/2; //zeby przyciski byly na srodku ekranu
+    
+    int BUTTON_Y = (GetScreenHeight()-TOTAL_HEIGHT_OF_BUTTONS_WITH_PADDING)/2; //blok z przyciskami na srodku ekranu
+
+    std::vector<menu_button> vector_of_buttons;
+
+    for (int i = 0; i < AMT_OF_BUTTONS; i++) {
+        Rectangle r = {BUTTON_X, BUTTON_Y + i*(MENU_BUTTON_HEIGHT+PADDING_BETWEEN_BUTTONS), MENU_BUTTON_WIDTH, MENU_BUTTON_HEIGHT};
+        menu_button b(r, BUTTON_COLOR, BUTTON_HOVER_COLOR, BUTTON_CLICKED_COLOR, (display_content)i);
+        vector_of_buttons.push_back(b);
+    }
+
+    handle_button_clicks(enum_display_value, vector_of_buttons);
+
+    v_draw_buttons(vector_of_buttons);
+    //moze zamiast tego lambde walne xd
+
+    return;
+}
+
+void draw(display_content &enum_display_value){
+
+    switch(enum_display_value) {
+        case MENU:
+            //draw the rest of this stuff
+            //przekazujemy to enum_display_value bo w menu możemy wybrać inne opcje, wtedy za pomocą referencji
+            //zmienimy wartość tej zmiennej i wyświetlimy co innego
+            main_menu(enum_display_value);
+            break;
+        
+        case ALGORYTM_1:
+            //TODO
+            break;
+        
+        case ALGORYTM_2:
+            //TODO
+            break;
+        case TODO:
+            //TODO
+            break;
+
+        default:
+            break;
+    }
+
+    return;
+};
 
 int main(void) {
 
     static int WIN_HEIGHT = 1080/2;
     static int WIN_WIDTH = 1920/2;
-    float distance_from_center_of_screen = 100;
-
-    float degreesPerFrame = 1.5;
-    double degree = 0.0;
-    const int FPS = 60;
-    Vector2 pointOfRotation = {WIN_WIDTH/2, WIN_HEIGHT/2};
-
-    Vector2 A = {pointOfRotation.x-distance_from_center_of_screen, pointOfRotation.y-distance_from_center_of_screen};
-    Vector2 B = {A.x-distance_from_center_of_screen, A.y};
-    Vector2 C = {B.x, B.y-distance_from_center_of_screen};
-    Vector2 D = {C.x+distance_from_center_of_screen, C.y};
-    Vector2 arr[4] = {A, B, C, D};
-    math::rectangle tommy(arr);
-
-    Vector2 a_cpy;
+    
+    constexpr int FPS = 60;
 
     InitWindow(WIN_WIDTH, WIN_HEIGHT, "WINDOW_TITLE");
+
+    display_content Content = MENU;                 //to co chcemy wyświetlić na ekranie, początkowo jest to menu główne
 
     SetTargetFPS(FPS);
 
     while(!WindowShouldClose()) {
 
-        a_cpy = rotateA_aroundR_byB(A, pointOfRotation, degree);
-
-        degree=degree+(PI/180);
-        if (degree>2*PI) degree = degree - 2*PI;
-
-        std::string len = "LEN="+std::to_string(getDistanceV(a_cpy, pointOfRotation));
-        std::string result = "SIN_SQ+COS_SQ="+std::to_string(sin(degree)*sin(degree)+cos(degree)*cos(degree));
-        std::string deg = "DEG="+std::to_string(180*degree/PI);
-        
-        // rotateA_aroundR_byB(A, pointOfRotation, PI/180*degreesPerFrame);
-        // rotateA_aroundR_byB(B, pointOfRotation, PI/180*degreesPerFrame);
-        // rotateA_aroundR_byB(C, pointOfRotation, PI/180*degreesPerFrame);
-        // rotateA_aroundR_byB(D, pointOfRotation, PI/180*degreesPerFrame);
-        tommy.rotate(pointOfRotation, PI/180*degreesPerFrame);
-        
         BeginDrawing();
+
+            draw(Content);
             ClearBackground(BLACK);
-            DrawLineV(tommy.points[0], tommy.points[1], WHITE);
-            DrawLineV(tommy.points[1], tommy.points[2], WHITE);
-            DrawLineV(tommy.points[2], tommy.points[3], WHITE);
-            DrawLineV(tommy.points[3], tommy.points[0], WHITE);
-           // DrawLineV(a_cpy, pointOfRotation, WHITE);
-           // DrawLineV(A, pointOfRotation, RED);
-            DrawText(result.c_str(), 0, 0, 10, WHITE);
-            DrawText(deg.c_str(), 0, 10, 10, WHITE);
-            DrawText(len.c_str(), 0, 20, 10, WHITE);
+
         EndDrawing();
     }
 
