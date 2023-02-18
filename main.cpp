@@ -3,6 +3,7 @@
 #include <iostream>
 #include <exception>
 #include <vector>
+#include "./datastructures/binarytree.h"
 
 // MENU, ALGORYTM_1, ALGORYTM_2, TODO
 enum display_content

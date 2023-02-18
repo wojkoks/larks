@@ -13,6 +13,6 @@ int main(){
     tree.addValue(3,&tree.root);
     tree.addValue(10,&tree.root);
     tree.addValue(1,&tree.root);
-    tree.showTree(tree.root);
+    tree.showTree(&tree.root);
     return 0;
 }
